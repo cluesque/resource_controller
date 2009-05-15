@@ -13,7 +13,7 @@ module ResourceController
         # Returns the type of the current parent
         #
         def parent_type
-          @parent_type ||= parent_type_from_params || parent_type_from_request
+          @parent_type ||= parent_type_from_params || parent_type_from_request || parent_type_from_object
         end
     
         # Returns the type of the current parent extracted from params
@@ -28,6 +28,12 @@ module ResourceController
           [*belongs_to].find { |parent| request.path.split('/').include? parent.to_s }
         end
     
+        # Returns the type of the current parent extracted the current object
+        #
+        def parent_type_from_object
+          [*belongs_to].find { |parent| @object.respond_to?(parent.to_sym) }
+        end
+
         # Returns true/false based on whether or not a parent is present.
         #
         def parent?
@@ -54,7 +60,11 @@ module ResourceController
         # Returns the current parent object if a parent object is present.
         #
         def parent_object
-          parent? && !parent_singleton? ? parent_model.find(parent_param) : nil
+          if parent? && !parent_singleton?
+            @object ? @object.send(parent_type) : parent_model.find(parent_param)
+          else
+            nil
+          end
         end
     
         # If there is a parent, returns the relevant association proxy.  Otherwise returns model.
