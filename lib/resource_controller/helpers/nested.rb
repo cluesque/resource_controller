@@ -31,7 +31,7 @@ module ResourceController
         # Returns the type of the current parent extracted the current object
         #
         def parent_type_from_object
-          [*belongs_to].find { |parent| @object.respond_to?(parent.to_sym) }
+          [*belongs_to].find { |parent| @object.respond_to?(parent.to_sym) if parent } if @object
         end
 
         # Returns true/false based on whether or not a parent is present.
